@@ -19,18 +19,29 @@ const props = defineProps({
     required: true
   }
 });
-
-function transformToBlob(file) {
-  if (file instanceof Blob) {
-    return file;
-  }
-
-  return new Blob([file], { type: file.type });
+function fileToBlob(file) {
+  const jsonData = JSON.stringify(file);
+  return new Blob([jsonData], { type: "application/json" });
+}
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64String = event.target.result;
+      resolve(base64String);
+    };
+    reader.onerror = (error) => {
+      console.error("Erro na leitura do arquivo:", error);
+      reject(error);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
-function validateAndSend(files) {
-  let archiveBlob = transformToBlob(files);
-
-  props.sendArchive(archiveBlob);
+async function validateAndSend(files) {
+  const blob = fileToBlob(files);
+  console.log(files);
+  const base64 = await fileToBase64(blob);
+  props.sendArchive(base64);
 }
 </script>
